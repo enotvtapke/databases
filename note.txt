@@ -14,11 +14,15 @@
 
 Слабая сущность 'Scores' преобразована в таблицу 'Scores', куда были добавлены столбцы, которые ссылаются на предмет оценки и студента, который эту оценку получил. Эти стоблцы уникально идентифицируют оценку, они являются составным основным ключом таблицы 'Scores'.
 
+==
+
 id -> bigserial
 person_name -> varchar(64)
 subject_name -> varchar(128)
 points -> numeric(5, 2)
 group_code -> char(6)
-time -> time(0)
 number -> integer
 lesson_type -> varchar(32)
+lesson_location -> varchar(64)
+week_day -> integer
+time -> time(0)
