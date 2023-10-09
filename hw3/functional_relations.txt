@@ -1,0 +1,114 @@
+1.
+LecturerId -> LecturerName
+CourseId, GroupId -> LecturerId
+GroupName, CourseName -> LecturerId
+CourseId -> CourseName
+StudentId -> StudentName
+GroupId -> GroupName
+GroupName -> GroupId
+StudentId -> GroupId
+StudentId, CourseId -> Mark
+
+2.1.
+X = {StudentId, StudentName, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark}
+Выясним, какие из атрибутов точно входят в надключи.
+
+StudentId: {StudentName, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark}+ = {StudentName, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark} => StudentId нельзя выкинуть
+StudentName: {StudentId, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark}+ = {StudentId, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark, StudentName} => StudentName можно выкинуть
+
+Аналогично
+GroupId: можно выкинуть
+GroupName: можно выкинуть
+CourseId: нельзя выкинуть
+CourseName: можно выкинуть
+LecturerId: можно выкинуть
+LecturerName: можно выкинуть
+Mark: можно выкинуть
+
+Итого нельзя выкинуть StudentId, CourseId. Проверим, является ли {StudentId, CourseId} надлючом.
+{StudentId, CourseId}+ = {StudentId, CourseId, CourseName, StudentName, GroupId, Mark, LecturerId, GroupName, LecturerName} = X => {StudentId, CourseId} является единственным ключом
+
+2.2.
+StudentId, CourseId
+
+3.1.
+GroupId, CourseId
+GroupId, CourseId, LecturerId
+GroupId, CourseId, LecturerId, CourseName
+GroupId, CourseId, LecturerId, CourseName, GroupName
+GroupId, CourseId, LecturerId, CourseName, GroupName, LecturerName
+
+3.2.
+StudentId, CourseId
+StudentId, CourseId, CourseName
+StudentId, CourseId, CourseName, StudentName
+StudentId, CourseId, CourseName, StudentName, GroupId
+StudentId, CourseId, CourseName, StudentName, GroupId, Mark
+StudentId, CourseId, CourseName, StudentName, GroupId, Mark, LecturerId
+StudentId, CourseId, CourseName, StudentName, GroupId, Mark, LecturerId, GroupName
+StudentId, CourseId, CourseName, StudentName, GroupId, Mark, LecturerId, GroupName, LecturerName
+
+3.3.
+StudentId, LecturerId
+StudentId, LecturerId, LecturerName
+StudentId, LecturerId, LecturerName, StudentName
+StudentId, LecturerId, LecturerName, StudentName, GroupId
+StudentId, LecturerId, LecturerName, StudentName, GroupId, GroupName
+
+4.1d.
+По правилу расщепления делаем все правые части единичными. Множество ФЗ, приведённое мной, уже содержит только единичные правые части.
+
+4.1r.
+LecturerId -> LecturerName
+CourseId, GroupId -> LecturerId
+GroupName, CourseName -> LecturerId
+CourseId -> CourseName
+StudentId -> StudentName
+GroupId -> GroupName
+GroupName -> GroupId
+StudentId -> GroupId
+StudentId, CourseId -> Mark
+
+4.2d.
+Для левой части каждого правила пытаемся удалить по одному атрибуту.
+
+CourseId GroupId -> LecturerId
+{GroupId}+ = {GroupId, GroupName} не содержит LecturerId => нельзя удалить CourseId из ФЗ CourseId GroupId -> LecturerId
+{CourseId}+ = {CourseId, CourseName} => аналогично нельзя удалить GroupId
+
+GroupName CourseName -> LecturerId
+{CourseName}+ = {CourseName} => аналогично нельзя удалить GroupName
+{GroupName}+ = {GroupName, GroupId} => аналогично нельзя удалить CourseName
+
+StudentId CourseId -> Mark
+{CourseId}+ = {CourseId, CourseName} => аналогично нельзя удалить StudentId
+{StudentId}+ = {StudentId, StudentName, GroupId, GroupName} => аналогично нельзя удалить CourseId
+
+4.2r.
+LecturerId -> LecturerName
+CourseId, GroupId -> LecturerId
+GroupName, CourseName -> LecturerId
+CourseId -> CourseName
+StudentId -> StudentName
+GroupId -> GroupName
+GroupName -> GroupId
+StudentId -> GroupId
+StudentId, CourseId -> Mark
+
+4.3d.
+Пытаемся удалить по одному правилу.
+{LecturerId}+_S\{LecturerId -> LecturerName} = {LecturerId} не содержит LecturerName => нельзя удалить правило LecturerId -> LecturerName
+
+{CourseId GroupId}+_S\{CourseId GroupId -> LecturerId} содержит LecturerId => правило можно удалить
+
+Остальные правила нельзя удалить аналогично LecturerId -> LecturerName.
+
+4.3r.
+LecturerId -> LecturerName
+GroupName, CourseName -> LecturerId
+CourseId -> CourseName
+StudentId -> StudentName
+GroupId -> GroupName
+GroupName -> GroupId
+StudentId -> GroupId
+StudentId, CourseId -> Mark
