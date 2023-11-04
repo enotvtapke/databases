@@ -1,0 +1,379 @@
+
+
+##############
+section Данные
+##############
+
+data Students
+    StudentId, StudentName       , GroupId
+    1        , 'Иванов И.И.'     , 1
+    2        , 'Петров П.П.'     , 1
+    3        , 'Петров П.П.'     , 2
+    4        , 'Сидров С.С.'     , 2
+    5        , 'Неизвестный Н.Н.', 3
+    6        , 'Безымянный Б.Б'  , 4
+
+data Groups
+    GroupId, GroupName
+    1      , 'M3435'
+    2      , 'M3439'
+    3      , 'M3238'
+    4      , 'M3239'
+
+data Courses
+    CourseId, CourseName
+    1       , 'Базы данных'
+    2       , 'Управление проектами'
+    3       , 'ППО'
+    4       , 'Теория информации'
+    6       , 'Математический анализ'
+    7       , 'Технологии Java'
+
+data Lecturers
+    LecturerId, LecturerName
+    1         , 'Корнеев Г.А.'
+    2         , 'Будин Н.А.'
+    3         , 'Кузнецова Е.М.'
+    4         , 'Киракозов А.Х.'
+    6         , 'Трофимюк Г.А.'
+    7         , 'Беляев Е.А.'
+    8         , 'Кохась К.П.'
+
+data Plan
+    GroupId, CourseId, LecturerId
+    1      , 1       , 2
+    2      , 1       , 1
+    1      , 2       , 3
+    1      , 3       , 4
+    2      , 3       , 4
+    2      , 4       , 6
+    1      , 4       , 7
+    2      , 4       , 7
+    4      , 6       , 8
+    1      , 7       , 1
+    2      , 7       , 1
+    3      , 7       , 1
+    4      , 7       , 1
+
+data Marks
+    StudentId, CourseId, Mark
+    1        , 1       , 5
+    2        , 1       , 4
+    3        , 1       , 3
+    2        , 2       , 3
+    3        , 2       , 4
+    4        , 2       , 5
+    7        , 1       , 5
+    8        , 1       , 5
+    7        , 7       , 5
+    8        , 7       , 5
+    5        , 7       , 5
+    6        , 7       , 5
+    3        , 3       , 3
+
+
+#########################################################
+section Составьте выражения реляционной алгебры и
+        соответствующие SQL-запросы, позволяющие получать
+#########################################################
+
+#####################################
+subsection 01. Информацию о студентах
+
+comment 01.1. С заданным идентификатором
+              (StudentId, StudentName, GroupId по :StudentId)
+
+set-var :StudentId = 1
+
+print-ra s{StudentId = :StudentId}(Students)
+
+print-sql select StudentId, StudentName, GroupId from Students where StudentId = :StudentId
+
+comment 01.2. С заданным ФИО
+              (StudentId, StudentName, GroupId по :StudentName)
+
+set-var :StudentName = 'Иванов И.И.'
+
+print-ra s{StudentName = :StudentName}(Students)
+
+print-sql select StudentId, StudentName, GroupId from Students where StudentName = :StudentName
+
+############################################
+subsection 02. Полную информацию о студентах
+
+comment 02.1. С заданным идентификатором
+              (StudentId, StudentName, GroupName по :StudentId)
+
+set-var :StudentId = 1
+
+print-ra pi{StudentId, StudentName, GroupName}(s{StudentId = :StudentId}(Students nj Groups))
+
+print-sql select StudentId, StudentName, GroupName from Students natural join Groups where StudentId = :StudentId
+
+comment 02.2. С заданным ФИО
+              (StudentId, StudentName, GroupName по :StudentName)
+
+set-var :StudentName = 'Иванов И.И.'
+
+print-ra pi{StudentId, StudentName, GroupName}(s{StudentName = :StudentName}(Students nj Groups))
+
+print-sql select StudentId, StudentName, GroupName from Students natural join Groups where StudentName = :StudentName
+
+######################################################################
+subsection 03. Информацию о студентах с заданной оценкой по дисциплине
+
+comment 03.1. С заданным идентификатором
+              (StudentId, StudentName, GroupId по :Mark, :CourseId)
+
+set-var :Mark = 5
+
+set-var :CourseId = 1
+
+print-ra pi{StudentId, StudentName, GroupId}(s{CourseId = :CourseId && Mark = :Mark}(Students nj Marks))
+
+print-sql select StudentId, StudentName, GroupId from Students natural join Marks where CourseId = :CourseId and Mark = :Mark
+
+comment 03.2. С заданным названием
+              (StudentId, StudentName, GroupId по :Mark, :CourseName)
+
+set-var :Mark = 5
+
+set-var :CourseName = 'Базы данных'
+
+print-ra pi{StudentId, StudentName, GroupId}(s{CourseName = :CourseName && Mark = :Mark}(Students nj Marks nj Courses))
+
+print-sql select StudentId, StudentName, GroupId from Students natural join Marks natural join Courses where CourseName = :CourseName and Mark = :Mark
+
+comment 03.3. Которую у него вёл лектор заданный идентификатором
+              (StudentId, StudentName, GroupId по :Mark, :LecturerId)
+
+set-var :Mark = 5
+
+set-var :LecturerId = 1
+
+print-ra pi{StudentId, StudentName, GroupId}(s{LecturerId = :LecturerId && Mark = :Mark}(Students nj Plan nj Marks))
+
+print-sql select StudentId, StudentName, GroupId from Students natural join Plan natural join Marks where LecturerId = :LecturerId and Mark = :Mark
+
+comment 03.4. Которую у него вёл лектор, заданный ФИО
+              (StudentId, StudentName, GroupId по :Mark, :LecturerName)
+
+set-var :Mark = 5
+
+set-var :LecturerName = 'Корнеев Г.А.'
+
+print-ra pi{StudentId, StudentName, GroupId}(s{LecturerName = :LecturerName && Mark = :Mark}(Students nj Plan nj Marks nj Lecturers))
+
+print-sql select StudentId, StudentName, GroupId from Students natural join Plan natural join Marks natural join Lecturers where LecturerName = :LecturerName and Mark = :Mark
+
+comment 03.5. Которую вёл лектор, заданный идентификатором
+              (StudentId, StudentName, GroupId по :Mark, :LecturerId)
+
+set-var :Mark = 5
+
+set-var :LecturerId = 1
+
+print-ra p{StudentId, StudentName, GroupId}(s{Mark = :Mark && LecturerId = :LecturerId}(Students nj Marks nj p{LecturerId, CourseId}(Plan)))
+
+print-sql select S.StudentId, S.StudentName, S.GroupId from Marks m
+inner join Plan p on m.CourseId = p.CourseId
+inner join Students s on m.StudentId = s.StudentId
+where LecturerId = :LecturerId and Mark = :Mark
+
+comment 03.6. Которую вёл лектор, заданный ФИО
+              (StudentId, StudentName, GroupId по :Mark, :LecturerName)
+
+set-var :Mark = 5
+
+set-var :LecturerName = 'Корнеев Г.А.'
+
+print-ra p{StudentId, StudentName, GroupId}(s{Mark = :Mark && LecturerName = :LecturerName}(Students nj Marks nj p{LecturerId, CourseId}(Plan) nj Lecturers))
+
+print-sql select StudentId, StudentName, GroupId from Students natural join Marks natural join (select CourseId from Plan natural join Lecturers where LecturerName = :LecturerName) Q where Mark = :Mark
+
+
+#####################################################################
+subsection 04. Информацию о студентах не имеющих оценки по дисциплине
+
+comment 04.1. Среди всех студентов
+              (StudentId, StudentName, GroupId по :CourseName)
+
+set-var :CourseName = 'Базы данных'
+
+print-ra Students diff p{StudentId, StudentName, GroupId}(s{CourseName = :CourseName}(Students nj Marks nj Courses))
+
+print-sql
+select * from Students
+except
+select StudentId, StudentName, GroupId from Students natural join Marks natural join Courses where CourseName = :CourseName
+
+comment 04.2. Среди студентов, у которых есть эта дисциплина
+              (StudentId, StudentName, GroupId по :CourseName)
+
+set-var :CourseName = 'Базы данных'
+
+print-ra p{StudentId, StudentName, GroupId}(s{CourseName = :CourseName}(Students nj Plan nj Courses)) diff p{StudentId, StudentName, GroupId}(s{CourseName = :CourseName}(Students nj Marks nj Courses))
+
+print-sql
+select StudentId, StudentName, GroupId from Students natural join Plan natural join Courses where CourseName = :CourseName
+except
+select StudentId, StudentName, GroupId from Students natural join Marks natural join Courses where CourseName = :CourseName
+
+############################################################
+subsection 05. Для каждого студента ФИО и названия дисциплин
+
+comment 05.1. Которые у него есть по плану
+              (StudentName, CourseName)
+
+print-ra p{StudentName, CourseName}(Students nj Plan nj Courses)
+
+print-sql select StudentName, CourseName from (select distinct StudentId, StudentName, CourseName from
+Plan natural join Courses natural join Students) q
+
+comment 05.2. Есть, но у него нет оценки
+              (StudentName, CourseName)
+
+print-ra p{StudentName, CourseName}((p{StudentId, CourseId}(Students nj Plan) diff p{StudentId, CourseId}(Students nj Marks)) nj Students nj Courses)
+
+print-sql
+select StudentName, CourseName from (
+select distinct StudentId, StudentName, CourseName from Students natural join Plan natural join Courses
+except
+select StudentId, StudentName, CourseName from Students natural join Marks natural join Courses
+) q3
+
+comment 05.3. Есть, но у него не 4 или 5
+              (StudentName, CourseName)
+
+print-ra p{StudentName, CourseName}((p{StudentId, CourseId}(Students nj Plan) diff p{StudentId, CourseId}(s{Mark = 4 || Mark = 5}(Students nj Marks))) nj Students nj Courses)
+
+print-sql
+select StudentName, CourseName from (
+select distinct StudentId, StudentName, CourseName from Students natural join Plan natural join Courses
+except
+select StudentId, StudentName, CourseName from Students natural join Marks natural join Courses where Mark = 4 or Mark = 5
+) q3
+
+
+########################################################
+subsection 06. Идентификаторы студентов по преподавателю
+
+comment 06.1. Имеющих хотя бы одну оценку у преподавателя
+              (StudentId по :LecturerName)
+
+set-var :LecturerName = 'Корнеев Г.А.'
+
+print-ra p{StudentId}(s{LecturerName = :LecturerName}(Students nj Marks nj Lecturers nj Plan))
+
+print-sql
+select distinct StudentId from
+Students natural join Marks natural join Lecturers natural join Plan
+where LecturerName = :LecturerName
+
+comment 06.2. Не имеющих ни одной оценки у преподавателя
+              (StudentId по :LecturerName)
+
+set-var :LecturerName = 'Корнеев Г.А.'
+
+print-ra p{StudentId}(Students) diff p{StudentId}(s{LecturerName = :LecturerName}(Students nj Marks nj Lecturers nj Plan))
+
+print-sql
+select StudentId from Students
+except
+select StudentId from
+Students natural join Marks natural join Lecturers natural join Plan
+where LecturerName = :LecturerName
+
+comment 06.3. Имеющих оценки по всем дисциплинам преподавателя
+              (StudentId по :LecturerName)
+
+set-var :LecturerName = 'Корнеев Г.А.'
+
+print-ra p{StudentId, CourseId}(Marks) div p{CourseId}(s{LecturerName = :LecturerName}(Plan nj Lecturers))
+
+print-ra p{StudentId}(Marks) diff p{StudentId}(p{StudentId}(Marks) cj p{CourseId}(s{LecturerName = :LecturerName}(Plan nj Lecturers)) diff p{StudentId, CourseId}(Marks))
+
+print-sql
+select StudentId from Marks
+except
+select StudentId from (
+select StudentId, CourseId from
+(select StudentId from Marks) q1 cross join (select CourseId from Plan natural join Lecturers where LecturerName = :LecturerName) q2
+except
+select StudentId, CourseId from Marks
+) q3
+
+comment 06.4. Имеющих оценки по всем дисциплинам преподавателя,
+              которые он вёл у этого студента
+              (StudentId по :LecturerName)
+
+set-var :LecturerName = 'Корнеев Г.А.'
+
+print-ra p{StudentId}(
+p{StudentId, CourseId}(Marks) gdiv p{GroupId, CourseId}(s{LecturerName = :LecturerName}(Plan nj Lecturers)) nj Students
+)
+
+print-ra
+p{StudentId}(
+	p{StudentId}(Marks) cj
+	p{GroupId}(s{LecturerName = :LecturerName}(Plan nj Lecturers) nj Students) diff
+	p{StudentId, GroupId}(
+		(p{StudentId}(Marks) cj
+		p{GroupId, CourseId}(s{LecturerName = :LecturerName}(Plan nj Lecturers) nj Students) diff
+		p{StudentId, CourseId}(Marks)) nj
+		p{GroupId, CourseId}(s{LecturerName = :LecturerName}(Plan nj Lecturers) nj Students)
+	)
+)
+
+print-sql
+
+
+#################################################################################################
+subsection 07. Группы и дисциплины, такие что все студенты группы имеют оценку по этой дисциплине
+
+comment 07.1. Идентификаторы
+              (GroupId, CourseId)
+
+comment 07.2. Названия
+              (GroupName, CourseName)
+
+###################################################
+section Составьте SQL-запросы, позволяющие получать
+###################################################
+
+#############################
+subsection 08. Суммарный балл
+
+comment 08.1. Одного студента
+              (SumMark по :StudentId)
+
+set-var :StudentId = 1
+
+comment 08.2. Каждого студента
+              (StudentName, SumMark)
+
+comment 08.3. Каждой группы
+              (GroupName, SumMark)
+
+###########################
+subsection 09. Средний балл
+
+comment 09.1. Одного студента
+              (AvgMark по :StudentId)
+
+set-var :StudentId = 1
+
+comment 09.2. Каждого студента
+              (StudentName, AvgMark)
+
+comment 09.3. Каждой группы
+              (GroupName, AvgMark)
+
+comment 09.4. Средний балл средних баллов студентов каждой группы
+              (GroupName, AvgAvgMark)
+
+comment 10. Для каждого студента:
+            число дисциплин, которые у него были,
+            число сданных дисциплин и
+            число несданных дисциплин
+            (StudentId, Total, Passed, Failed)

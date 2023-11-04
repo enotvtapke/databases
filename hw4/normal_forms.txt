@@ -1,0 +1,102 @@
+StudentId -> StudentName, GroupId, GroupName
+GroupId -> GroupName
+GroupName -> GroupId
+CourseId -> CourseName
+LecturerId -> LecturerName
+StudentId, CourseId -> Mark
+GroupId, CourseId -> LecturerId, LecturerName
+
+1.1
+По дз 3 в отношении есть ключ (StudentId, CourseId). Все атрибуты атомарны, нет повторяющихся групп. Значит, отношение уже находится в 1НФ.
+
+1.2
+(StudentId, StudentName, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark) => (StudentId, StudentName, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark).
+
+2.1
+Разобьём по CourseId -> CourseName, получится (CI, CN) и (CI, SI, SN, GI, GN, LI, LN, M). (CI, CN) уже в 2НФ (CI ключ). Разобьём (CI, SI, SN, GI, GN, LI, LN, M) по GI, CI -> LI, LN, получится (GI, CI, LI, LN) и (GI, CI, SI, SN, GN, M). (GI, CI, LI, LN) уже в 2НФ ((GI, CI) ключ). Разобьём (GI, CI, SI, SN, GN, M) по (SI, SN, GI, GN), получится (SI, SN, GI, GN) и (SI, CI, M). Оба этих отношения находятся в 2НФ с ключами SI и (SI, CI) соответственно.
+
+2.2
+(StudentId, StudentName, GroupId, GroupName, CourseId, CourseName, LecturerId, LecturerName, Mark) => (CourseId, CourseName); (GroupId, CourseId, LecturerId, LecturerName); (StudentId, StudentName, GroupId, GroupName); (StudentId, CourseId, Mark).
+
+3.1
+Отношения (GroupId, CourseId, LecturerId, LecturerName) и (StudentId, StudentName, GroupId, GroupName) не находятся в 3НФ. Остальные отношения уже в 3НФ, так как в них только по одному неключевому атрибуту.
+
+Выведем зависимость GI, CI -> LI. В (GroupId, CourseId, LecturerId, LecturerName) LN можно транзитивно получить, как GI, CI -> LI => LI -> LN. Разобьём (GroupId, CourseId, LecturerId, LecturerName) по LI -> LN, получим (LI, LN) и (LI, GI, CI), оба отношения в 3НФ.
+
+Выведем зависимость SI -> GI. В (StudentId, StudentName, GroupId, GroupName) GN можно транзитивно получить, как SI -> GI => GI -> GN. Разобьём (StudentId, StudentName, GroupId, GroupName) на (GI, GN) и (GI, SI, SN), оба отношения в 3НФ.
+
+3.2
+(CourseId, CourseName) => (CourseId, CourseName).
+(GroupId, CourseId, LecturerId, LecturerName) => (LecturerId, LecturerName); (LecturerId, GroupId, CourseId).
+(StudentId, StudentName, GroupId, GroupName) => (GroupId, GroupName); (GroupId, StudentId, StudentName).
+(StudentId, CourseId, Mark) => (StudentId, CourseId, Mark).
+
+Б.1
+Отношения (CourseId, CourseName), (LecturerId, LecturerName), (GroupId, GroupName), (GroupId, StudentId, StudentName) находятся в 5НФ, так как они находятся в 3НФ и все их ключи простые.
+
+В (LecturerId, GroupId, CourseId) есть одна функциональная зависимость GI, CI -> LI, при этом GI, CI надключ. Следовательно, отношение в НФБК.
+В (StudentId, CourseId, Mark) есть одна функциональная зависимость SI, CI -> M, при этом SI, CI надключ. Следовательно, отношение в НФБК.
+
+Б.2
+(CourseId, CourseName) => (CourseId, CourseName).
+(LecturerId, LecturerName) => (LecturerId, LecturerName).
+(LecturerId, GroupId, CourseId) => (LecturerId, GroupId, CourseId).
+(GroupId, GroupName) => (GroupId, GroupName).
+(GroupId, StudentId, StudentName) => (GroupId, StudentId, StudentName).
+(StudentId, CourseId, Mark) => (StudentId, CourseId, Mark).
+
+4.1
+Есть два отношения, которые ещё не в 4НФ, это (LecturerId, GroupId, CourseId) и (StudentId, CourseId, Mark).
+Рассмотрим отношение (LecturerId, GroupId, CourseId). Переберём все возможные МЗ в (LecturerId, GroupId, CourseId), докажем, что не одна из них в действительности не является МЗ путём приведения контрпримера. Таким образом будет доказано, что отношение находится в 4НФ.
+
+0 -> LI | GI CI
+LI GI CI
+1  1  1
+2  2  2
+
+0 -> GI | LI CI
+LI GI CI
+1  1  1
+2  2  2
+
+0 -> CI | LI GI
+LI GI CI
+1  1  1
+2  2  2
+
+LI -> GI | CI
+LI GI CI
+1  1  1
+1  2  2
+
+GI -> LI | CI
+LI GI CI
+1  1  1
+2  1  2
+
+CI -> LI | GI
+LI GI CI
+1  1  1
+2  2  1
+
+Для отношения (StudentId, CourseId, Mark) доказательство выглядит аналогично с точностью до переименования атрибутов.
+
+4.2
+(CourseId, CourseName) => (CourseId, CourseName).
+(LecturerId, LecturerName) => (LecturerId, LecturerName).
+(LecturerId, GroupId, CourseId) => (LecturerId, GroupId, CourseId).
+(GroupId, GroupName) => (GroupId, GroupName).
+(GroupId, StudentId, StudentName) => (GroupId, StudentId, StudentName).
+(StudentId, CourseId, Mark) => (StudentId, CourseId, Mark).
+
+5.1
+Докажем, что (LecturerId, GroupId, CourseId) находится в 5НФ. Для (StudentId, CourseId, Mark) доказательство аналогично. Остальные отношения уже находятся в 5НФ.
+
+
+5.2
+(CourseId, CourseName) => (CourseId, CourseName).
+(LecturerId, LecturerName) => (LecturerId, LecturerName).
+(LecturerId, GroupId, CourseId) => (LecturerId, GroupId, CourseId).
+(GroupId, GroupName) => (GroupId, GroupName).
+(GroupId, StudentId, StudentName) => (GroupId, StudentId, StudentName).
+(StudentId, CourseId, Mark) => (StudentId, CourseId, Mark).
