@@ -3,38 +3,37 @@
 --               (StudentId)
 -- postgres:15.2
 
-create function same_marks_modify_marks() returns trigger
+create function same_marks() returns trigger
 as
-$same_marks_modify_marks$
-declare
-    courses_ids_prev integer[];
-    courses_ids      integer[];
-    group_id         students.groupid%TYPE;
-    student_id       students.studentid%TYPE;
+$same_marks$
 begin
-    for group_id in select groupid from students
-        loop
-            courses_ids_prev := null;
-            for student_id in select studentid from students where groupid = group_id
-                loop
-                    select array_agg(courseid) into courses_ids from marks where studentid = student_id;
-                    if courses_ids_prev is not null and
-                       not (courses_ids <@ courses_ids_prev and courses_ids_prev <@ courses_ids) then
-                        raise $$Sets of courses for which students from group with id `%` have marks are different:
-                            %
-                            and
-                            %$$, group_id, courses_ids_prev, courses_ids;
-                    end if;
-                    courses_ids_prev := courses_ids;
-                end loop;
-        end loop;
+    if exists(select s1.studentid
+              from students s1
+              where exists(select studentid
+                           from students s2
+                           where s1.groupid = s2.groupid
+                             and exists(select courseid
+                                        from marks m1
+                                        where studentid = s1.studentid
+                                          and courseid not in (select courseid
+                                                               from marks m2
+                                                               where studentid = s2.studentid))))
+    then
+        raise 'Students in the same group have different sets of courses for which they have marks';
+    end if;
     return null;
 end ;
-$same_marks_modify_marks$
+$same_marks$
     language plpgsql;
 
-create constraint trigger SameMarks
+create trigger SameMarksOnModifyMarks
     after update or insert or delete
     on marks
-    for each row
-execute function same_marks_modify_marks();
+    for each statement
+execute function same_marks();
+
+create trigger SameMarksOnModifyStudents
+    after update or insert
+    on students
+    for each statement
+execute function same_marks();
