@@ -10,13 +10,13 @@ create unique index students_studentId on students using hash (studentid);
 -- ДЗ-5.1.2. Информацию о студентах С заданным ФИО
 -- ДЗ-5.2.2. Полную информацию о студентах С заданным ФИО
 -- ДЗ-6.1.1. Информацию о студентах С заданным ФИО
-create index students_studentName on students using btree (studentname, studentid, groupid);
+create index students_studentName_studentId_groupId on students using btree (studentname, studentid, groupid);
 
 -- Hash достаточно при проверке на равенство конкретному значению. Для join
 -- ДЗ-6.6.1. Группы и дисциплины, такие что все студенты группы имеют оценку по предмету Идентификаторы
 -- ДЗ-7.1.1. Напишите запросы, удаляющие студентов Учащихся в группе, заданной идентификатором
 -- ДЗ-7.2.3. Напишите запросы, обновляющие данные студентов Перевод всех студентов из группы в группу по идентификаторам
-create index GIdIndex on Students using hash (GroupId);
+create index students_groupId on Students using hash (groupid);
 
 
 -- 1.G. Индексы на таблицу Groups
@@ -68,15 +68,15 @@ create index lecturers_lecturerName_lecturerId on Lecturers using btree (Lecture
 -- ДЗ-5.3.5. Информацию о студентах с заданной оценкой по дисциплине Которую вёл лектор, заданный идентификатором
 create index plan_lecturerId on plan using hash (lecturerid);
 
--- нужен поиск по равенству courseid конкретному значению, то есть не нужен покрывающий индекс, не нужно искать по префиксу => hash
+-- нужен поиск по равенству courseId конкретному значению, то есть не нужен покрывающий индекс, не нужно искать по префиксу => hash
 -- ДЗ-6.2.4. Полную информацию о студентах Студентов, не имеющих оценки по дисциплине, у которых есть эта дисциплина
 create index plan_courseId on plan using hash (courseid);
 
--- Не нужен покрывающий индекс, не нужно искать по префиксу => hash
+-- Лучше использовать покрывающий индекс.
 -- ДЗ-7.3.5. Напишите запросы, подсчитывающие статистику по студентам Число долгов студента
 -- ДЗ-7.3.6. Напишите запросы, подсчитывающие статистику по студентам Число долгов каждого студента
 -- ДЗ-7.3.7. Напишите запросы, подсчитывающие статистику по студентам Число долгов каждого студента группы (столбец Students.Debts)
-create index plan_groupId on plan using hash (groupid);
+create index plan_groupId on plan using btree (groupid, courseid);
 
 
 -- 1.M. Индексы на таблицу Marks
@@ -85,10 +85,10 @@ create index plan_groupId on plan using hash (groupid);
 -- ДЗ-5.3.1. Информацию о студентах с заданной оценкой по дисциплине С заданным идентификатором
 -- ДЗ-5.3.2. Информацию о студентах с заданной оценкой по дисциплине С заданным названием
 -- ДЗ-6.2.2. Полную информацию о студентах Студентов, не имеющих оценки по дисциплине, заданной идентификатором
-create unique index marks_studentId_courseId on marks using btree (courseid, studentid, mark);
+create unique index marks_courseId_studentId_mark on marks using btree (courseid, studentid, mark);
 
 -- покрывающий индекс. Нужен поиск по префиксу индекса.
 -- ДЗ-5.8.1. Суммарный балл Одного студента
 -- ДЗ-5.8.2. Суммарный балл Каждого студента
 -- ДЗ-5.9.1. Средний балл Одного студента
-create index marks_studentId_courseId on marks using btree (studentid, mark);
+create index marks_studentId_mark on marks using btree (studentid, mark);
