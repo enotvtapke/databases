@@ -1,13 +1,13 @@
-create or replace procedure add_user(user_id integer, pass varchar(72))
+create procedure register_user(user_id integer, pass varchar(72))
 as
-$add_user$
+$register_user$
 begin
     insert into users (userid, passhash) values (user_id, crypt(pass, gen_salt('bf')));
 end;
-$add_user$
+$register_user$
     language plpgsql;
 
-create or replace function auth(user_id integer, pass varchar(72)) returns boolean
+create function auth(user_id integer, pass varchar(72)) returns boolean
 as
 $auth$
 begin
@@ -19,12 +19,24 @@ end;
 $auth$
     language plpgsql;
 
-create function in_future(flight_id integer) returns boolean
+create function reservation_available(flight_id integer) returns boolean
 as
-$Auth$
+$reservation_available$
 begin
-    return now() < (select flighttime from flights where flightid = flight_id);
-
+    return (select not reservationcanceled and now() < flighttime - interval '3 days'
+            from flights
+            where flightid = flight_id);
 end;
-$Auth$
+$reservation_available$
+    language plpgsql;
+
+create function purchase_available(flight_id integer) returns boolean
+as
+$purchase_available$
+begin
+    return (select not purchasecanceled and now() < flighttime - interval '3 hours'
+            from flights
+            where flightid = flight_id);
+end;
+$purchase_available$
     language plpgsql;

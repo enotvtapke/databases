@@ -5,9 +5,11 @@ create extension pgcrypto;
 
 create table Flights
 (
-    FlightId   integer primary key,
-    FlightTime timestamp not null,
-    PlaneId    integer   not null
+    FlightId            integer primary key,
+    FlightTime          timestamp not null,
+    PlaneId             integer   not null,
+    reservationCanceled boolean   not null default false,
+    purchaseCanceled    boolean   not null default false
 );
 
 create table Seats

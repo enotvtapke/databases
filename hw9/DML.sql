@@ -25,10 +25,10 @@ values (1, '122B'),
        (2, '123A'),
        (3, '123A');
 
-call add_user(1, 'pass1');
-call add_user(2, 'pass2');
-call add_user(3, 'pass3');
-call add_user(4, 'pass4');
+call register_user(1, 'pass1');
+call register_user(2, 'pass2');
+call register_user(3, 'pass3');
+call register_user(4, 'pass4');
 
 insert into reservations (flightid, seatno, userid, reserveduntil)
 values (1, '124A', 1, '2023-11-20 13:43:27.175607'),

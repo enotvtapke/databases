@@ -27,7 +27,7 @@ as
 $Reserve$
 begin
     if SeatNo in (select freeseats(FlightId)) and
-       in_future(FlightId) and
+       reservation_available(FlightId) and
        auth(UserId, Pass) then
         insert into reservations (flightid, seatno, userid, reserveduntil)
         values (Reserve.FlightId, Reserve.SeatNo, Reserve.UserId, now() + interval '3 day');
@@ -44,7 +44,7 @@ create function ExtendReservation(UserId integer, Pass varchar(72), FlightId int
 as
 $ExtendReservation$
 begin
-    if in_future(FlightId) and
+    if reservation_available(FlightId) and
        auth(UserId, Pass) and
        exists(select r.flightid
               from reservations r
@@ -63,8 +63,6 @@ end;
 $ExtendReservation$
     language plpgsql;
 
--- select ExtendReservation(2, 'pass2', 1, '124B');
-
 
 -- 4. BuyFree(FlightId, SeatNo) — пытается купить свободное место. Возвращает истину, если удалось и ложь — в противном случае.
 
@@ -72,7 +70,7 @@ create function BuyFree(FlightId integer, SeatNo char(4)) returns boolean
 as
 $BuyFree$
 begin
-    if in_future(FlightId) and
+    if purchase_available(FlightId) and
        SeatNo in (select freeseats(FlightId))
     then
         insert into tickets (flightid, seatno) values (BuyFree.FlightId, BuyFree.SeatNo);
@@ -83,8 +81,6 @@ end;
 $BuyFree$
     language plpgsql;
 
--- select BuyFree(2, '123B');
-
 
 -- 5. BuyReserved(UserId, Pass, FlightId, SeatNo) — пытается выкупить забронированное место (пользователи должны совпадать). Возвращает истину, если удалось и ложь — в противном случае.
 
@@ -92,7 +88,7 @@ create function BuyReserved(UserId integer, Pass varchar(72), FlightId integer, 
 as
 $BuyReserved$
 begin
-    if in_future(FlightId) and
+    if purchase_available(FlightId) and
        auth(UserId, Pass) and
        exists(select r.flightid
               from reservations r
@@ -108,8 +104,6 @@ begin
 end;
 $BuyReserved$
     language plpgsql;
-
--- select buyreserved(1, 'pass1', 1, '124A');
 
 
 -- 6. FlightsStatistics(UserId, Pass) — статистика по рейсам: возможность бронирования и покупки, число свободных, забронированных и проданных мест.
@@ -131,14 +125,15 @@ begin
     if not auth(UserId, Pass) then
         return;
     end if;
-    return query (select f.flightid                                                                     as flight_id,
-                         count(t.flightid)                                                              as sold,
-                         count(r.flightid)                                                              as reserved,
-                         count(*) - count(t.flightid) - count(r.flightid)                               as free,
-                         in_future(f.flightid) and count(*) - count(t.flightid) - count(r.flightid) > 0 as can_reserve,
-                         in_future(f.flightid) and
+    return query (select f.flightid                                                                                 as flight_id,
+                         count(t.flightid)                                                                          as sold,
+                         count(r.flightid)                                                                          as reserved,
+                         count(*) - count(t.flightid) - count(r.flightid)                                           as free,
+                         reservation_available(f.flightid) and count(*) - count(t.flightid) - count(r.flightid) >
+                                                               0                                                    as can_reserve,
+                         purchase_available(f.flightid) and
                          (count(*) - count(t.flightid) - count(r.flightid) > 0 or
-                          bool_or(FlightsStatistics.UserId = r.userid))                                 as can_buy
+                          bool_or(FlightsStatistics.UserId = r.userid))                                             as can_buy
                   from flights f
                            natural join seats s
                            left join tickets t on f.flightid = t.flightid and s.seatno = t.seatno
@@ -147,9 +142,6 @@ begin
 end;
 $FlightsStatistics$
     language plpgsql;
-
--- select *
--- from FlightsStatistics(1, 'pass1');
 
 
 -- 7. FlightStat(UserId, Pass, FlightId) — статистика по рейсу: возможность бронирования и покупки, число свободных, забронированных и проданных мест.
@@ -170,14 +162,14 @@ begin
     if not auth(UserId, Pass) then
         return;
     end if;
-    return query (select count(t.flightid)                                as sold,
-                         count(r.flightid)                                as reserved,
-                         count(*) - count(t.flightid) - count(r.flightid) as free,
-                         in_future(FlightStat.FlightId) and count(*) - count(t.flightid) - count(r.flightid) >
-                                                            0             as can_reserve,
-                         in_future(FlightStat.FlightId) and
+    return query (select count(t.flightid)                                    as sold,
+                         count(r.flightid)                                    as reserved,
+                         count(*) - count(t.flightid) - count(r.flightid)     as free,
+                         reservation_available(FlightStat.FlightId) and
+                         count(*) - count(t.flightid) - count(r.flightid) > 0 as can_reserve,
+                         purchase_available(FlightStat.FlightId) and
                          (count(*) - count(t.flightid) - count(r.flightid) > 0 or
-                          bool_or(FlightStat.UserId = r.userid))          as can_buy
+                          bool_or(FlightStat.UserId = r.userid))              as can_buy
                   from flights f
                            natural join seats s
                            left join tickets t on f.flightid = t.flightid and s.seatno = t.seatno
@@ -186,9 +178,6 @@ begin
 end;
 $FlightsStatistics$
     language plpgsql;
-
--- select *
--- from FlightStat(1, 'pass1', 1);
 
 
 -- 8. CompressSeats(FlightId) — оптимизирует занятость мест в самолете. В результате оптимизации, в начале самолета должны быть купленные места, затем — забронированные, а в конце — свободные. Примечание: клиенты, которые уже выкупили билеты также должны быть пересажены.
@@ -210,7 +199,7 @@ declare
                         from reservations r
                         where r.flightid = CompressSeats.FLightId for update;
 begin
-    SET CONSTRAINTS tickets_pkey, reservations_pkey DEFERRED;
+    set constraints tickets_pkey, reservations_pkey deferred;
     open seats;
     for _ in sold
         loop
@@ -225,5 +214,3 @@ begin
 end;
 $CompressSeats$
     language plpgsql;
-
--- call CompressSeats(1);
