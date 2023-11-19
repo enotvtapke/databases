@@ -1,7 +1,7 @@
 -- drop schema public cascade;
 -- create schema public;
 
-create extension pgcrypto;
+create extension if not exists pgcrypto;
 
 create table Flights
 (

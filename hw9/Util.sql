@@ -40,3 +40,22 @@ begin
 end;
 $purchase_available$
     language plpgsql;
+
+create function free_seats(FlightId integer)
+    returns setof varchar(4)
+as
+$FreeSeats$
+select s.seatno
+from flights f
+         natural join seats s
+where f.flightid = FreeSeats.FlightId
+except
+(select t.seatno
+ from tickets t
+ where t.flightid = FreeSeats.FlightId
+ union
+ select r.seatno
+ from reservations r
+ where r.flightid = FreeSeats.FlightId);
+$FreeSeats$
+language sql;

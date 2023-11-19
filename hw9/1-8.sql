@@ -4,20 +4,9 @@ create function FreeSeats(FlightId integer)
     returns setof varchar(4)
 as
 $FreeSeats$
-select s.seatno
-from flights f
-         natural join seats s
-where f.flightid = FreeSeats.FlightId
-  and purchase_available(FreeSeats.FlightId)
-  and reservation_available(FreeSeats.FlightId)
-except
-(select t.seatno
- from tickets t
- where t.flightid = FreeSeats.FlightId
- union
- select r.seatno
- from reservations r
- where r.flightid = FreeSeats.FlightId);
+select free_seats(FreeSeats.FlightId)
+where purchase_available(FreeSeats.FlightId)
+  and reservation_available(FreeSeats.FlightId);
 $FreeSeats$
 language sql;
 
@@ -28,7 +17,7 @@ create function Reserve(UserId integer, Pass varchar(72), FlightId integer, Seat
 as
 $Reserve$
 begin
-    if SeatNo in (select freeseats(FlightId)) and
+    if SeatNo in (select free_seats(FlightId)) and
        reservation_available(FlightId) and
        auth(UserId, Pass) then
         insert into reservations (flightid, seatno, userid, reserveduntil)
@@ -73,7 +62,7 @@ as
 $BuyFree$
 begin
     if purchase_available(FlightId) and
-       SeatNo in (select freeseats(FlightId))
+       SeatNo in (select free_seats(FlightId))
     then
         insert into tickets (flightid, seatno) values (BuyFree.FlightId, BuyFree.SeatNo);
         return true;
