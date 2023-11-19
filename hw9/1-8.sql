@@ -8,6 +8,8 @@ select s.seatno
 from flights f
          natural join seats s
 where f.flightid = FreeSeats.FlightId
+  and purchase_available(FreeSeats.FlightId)
+  and reservation_available(FreeSeats.FlightId)
 except
 (select t.seatno
  from tickets t
@@ -17,7 +19,7 @@ except
  from reservations r
  where r.flightid = FreeSeats.FlightId);
 $FreeSeats$
-    language sql;
+language sql;
 
 
 -- 2. Reserve(UserId, Pass, FlightId, SeatNo) — пытается забронировать место на трое суток начиная с момента бронирования. Возвращает истину, если удалось и ложь — в противном случае.
