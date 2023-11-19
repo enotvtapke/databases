@@ -132,8 +132,8 @@ begin
                          reservation_available(f.flightid) and count(*) - count(t.flightid) - count(r.flightid) >
                                                                0                                                    as can_reserve,
                          purchase_available(f.flightid) and
-                         (count(*) - count(t.flightid) - count(r.flightid) > 0 or
-                          bool_or(FlightsStatistics.UserId = r.userid))                                             as can_buy
+                         count(*) - count(t.flightid) - count(r.flightid) >
+                         0                                                                                          as can_buy
                   from flights f
                            natural join seats s
                            left join tickets t on f.flightid = t.flightid and s.seatno = t.seatno
@@ -168,8 +168,7 @@ begin
                          reservation_available(FlightStat.FlightId) and
                          count(*) - count(t.flightid) - count(r.flightid) > 0 as can_reserve,
                          purchase_available(FlightStat.FlightId) and
-                         (count(*) - count(t.flightid) - count(r.flightid) > 0 or
-                          bool_or(FlightStat.UserId = r.userid))              as can_buy
+                         count(*) - count(t.flightid) - count(r.flightid) > 0 as can_buy
                   from flights f
                            natural join seats s
                            left join tickets t on f.flightid = t.flightid and s.seatno = t.seatno
