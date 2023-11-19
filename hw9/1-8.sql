@@ -8,7 +8,7 @@ select free_seats(FreeSeats.FlightId)
 where purchase_available(FreeSeats.FlightId)
   and reservation_available(FreeSeats.FlightId);
 $FreeSeats$
-language sql;
+    language sql;
 
 
 -- 2. Reserve(UserId, Pass, FlightId, SeatNo) — пытается забронировать место на трое суток начиная с момента бронирования. Возвращает истину, если удалось и ложь — в противном случае.
@@ -17,16 +17,18 @@ create function Reserve(UserId integer, Pass varchar(72), FlightId integer, Seat
 as
 $Reserve$
 begin
-    if SeatNo in (select free_seats(FlightId)) and
-       reservation_available(FlightId) and
-       auth(UserId, Pass) then
+    if reservation_available(FlightId) and
+       auth(UserId, Pass) and
+       SeatNo in (select free_seats(FlightId))
+    then
         insert into reservations (flightid, seatno, userid, reserveduntil)
         values (Reserve.FlightId, Reserve.SeatNo, Reserve.UserId, now() + interval '3 day');
         return true;
     end if;
     return false;
 end;
-$Reserve$ language plpgsql;
+$Reserve$
+    language plpgsql;
 
 
 -- 3. ExtendReservation(UserId, Pass, FlightId, SeatNo) — пытается продлить бронь места на трое суток начиная с момента продления. Возвращает истину, если удалось и ложь — в противном случае.

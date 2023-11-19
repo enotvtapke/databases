@@ -44,18 +44,18 @@ $purchase_available$
 create function free_seats(FlightId integer)
     returns setof varchar(4)
 as
-$FreeSeats$
+$free_seats$
 select s.seatno
 from flights f
          natural join seats s
-where f.flightid = FreeSeats.FlightId
+where f.flightid = free_seats.FlightId
 except
 (select t.seatno
  from tickets t
- where t.flightid = FreeSeats.FlightId
+ where t.flightid = free_seats.FlightId
  union
  select r.seatno
  from reservations r
- where r.flightid = FreeSeats.FlightId);
-$FreeSeats$
-language sql;
+ where r.flightid = free_seats.FlightId);
+$free_seats$
+    language sql;

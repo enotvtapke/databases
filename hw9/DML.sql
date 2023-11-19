@@ -3,6 +3,9 @@ values (1, '2024-01-17T12:50', 1),
        (2, '2024-01-17T13:30', 2),
        (3, '2024-01-20T17:18', 1);
 
+insert into flights (flightid, flighttime, planeid, reservationcanceled, purchasecanceled)
+values (4, '2024-01-02T23:45', 2, true, true);
+
 insert into seats (planeid, seatno)
 values (1, '122A'),
        (1, '122B'),
