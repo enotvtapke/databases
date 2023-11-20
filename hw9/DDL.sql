@@ -1,8 +1,7 @@
 -- drop schema public cascade;
 -- create schema public;
 
-create extension if not exists pgcrypto;
-
+-- Рейсы. Столбцы Canceled необходимы для ручного отключения возможности бронирования или покупки билетов
 create table Flights
 (
     FlightId            integer primary key,
@@ -12,6 +11,7 @@ create table Flights
     purchaseCanceled    boolean   not null default false
 );
 
+-- Места, которые есть в самолётах
 create table Seats
 (
     PlaneId integer,
@@ -21,12 +21,14 @@ create table Seats
 
 create index seats_planeid on Seats using hash (PlaneId);
 
+-- Пользователи в системе
 create table Users
 (
     UserId   integer primary key,
     PassHash text not null
 );
 
+-- Купленные билеты на рейс
 create table Tickets
 (
     FlightId integer    not null references Flights (FlightId),
@@ -36,6 +38,7 @@ create table Tickets
 
 create index tickets_flightid on Tickets using hash (flightid);
 
+-- Забронированные билеты на рейс
 create table Reservations
 (
     FlightId      integer    not null references Flights (FlightId),

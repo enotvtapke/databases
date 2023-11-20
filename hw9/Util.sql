@@ -1,3 +1,7 @@
+-- Необходимо для хэширования пароля
+create extension if not exists pgcrypto;
+
+-- Создание нового пользователя
 create procedure register_user(user_id integer, pass varchar(72))
 as
 $register_user$
@@ -7,6 +11,7 @@ end;
 $register_user$
     language plpgsql;
 
+-- Авторизация пользователя
 create function auth(user_id integer, pass varchar(72)) returns boolean
 as
 $auth$
@@ -19,6 +24,7 @@ end;
 $auth$
     language plpgsql;
 
+-- Проверка доступности бронирования места на рейс
 create function reservation_available(flight_id integer) returns boolean
 as
 $reservation_available$
@@ -30,6 +36,7 @@ end;
 $reservation_available$
     language plpgsql;
 
+-- Проверка доступности покупки билетов на рейс
 create function purchase_available(flight_id integer) returns boolean
 as
 $purchase_available$
@@ -41,6 +48,7 @@ end;
 $purchase_available$
     language plpgsql;
 
+-- Даёт список мест, которые не куплены и не забронированы
 create function free_seats(FlightId integer)
     returns setof varchar(4)
 as

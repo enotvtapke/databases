@@ -151,7 +151,7 @@ create function FlightStat(UserId integer, Pass varchar(72), FlightId integer)
                 can_buy     boolean
             )
 as
-$FlightsStatistics$
+$FlightStat$
 declare
 begin
     if not auth(UserId, Pass) then
@@ -171,7 +171,7 @@ begin
                                      on f.flightid = r.flightid and s.seatno = r.seatno
                   where f.flightid = FlightStat.FlightId);
 end;
-$FlightsStatistics$
+$FlightStat$
     language plpgsql;
 
 
@@ -192,7 +192,8 @@ declare
                     where t.flightid = CompressSeats.FLightId for update;
     reserved cursor for select r.seatno
                         from reservations r
-                        where r.flightid = CompressSeats.FLightId for update;
+                        where r.flightid = CompressSeats.FLightId
+                          and reserveduntil > now() for update;
 begin
     set constraints tickets_pkey deferred;
     open seats;
