@@ -35,5 +35,5 @@ call register_user(4, 'pass4');
 
 insert into reservations (flightid, seatno, userid, reserveduntil)
 values (1, '124A', 1, '2023-11-20 13:43:27.175607'),
-       (1, '125B', 1, '2023-11-20 13:43:27.175607'),
+       (1, '125B', 1, '2023-11-19 13:43:27.175607'),
        (1, '124B', 2, '2023-11-20 13:43:37.917177');

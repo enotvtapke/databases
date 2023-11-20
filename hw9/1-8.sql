@@ -43,7 +43,8 @@ begin
               from reservations r
               where r.flightid = ExtendReservation.FlightId
                 and r.seatno = ExtendReservation.SeatNo
-                and r.userid = ExtendReservation.UserId)
+                and r.userid = ExtendReservation.UserId
+                and r.reserveduntil > now())
     then
         update reservations r
         set reserveduntil = now() + interval '3 day'
@@ -87,7 +88,8 @@ begin
               from reservations r
               where r.flightid = BuyReserved.FlightId
                 and r.seatno = BuyReserved.SeatNo
-                and r.userid = BuyReserved.UserId)
+                and r.userid = BuyReserved.UserId
+                and r.reserveduntil > now())
     then
         insert into tickets (flightid, seatno) values (BuyReserved.FlightId, BuyReserved.SeatNo);
         delete from reservations r where r.flightid = BuyReserved.FlightId and r.seatno = BuyReserved.SeatNo;
@@ -118,19 +120,19 @@ begin
     if not auth(UserId, Pass) then
         return;
     end if;
-    return query (select f.flightid                                                                                 as flight_id,
-                         count(t.flightid)                                                                          as sold,
-                         count(r.flightid)                                                                          as reserved,
-                         count(*) - count(t.flightid) - count(r.flightid)                                           as free,
-                         reservation_available(f.flightid) and count(*) - count(t.flightid) - count(r.flightid) >
-                                                               0                                                    as can_reserve,
+    return query (select f.flightid                                           as flight_id,
+                         count(t.flightid)                                    as sold,
+                         count(r.flightid)                                    as reserved,
+                         count(*) - count(t.flightid) - count(r.flightid)     as free,
+                         reservation_available(f.flightid) and
+                         count(*) - count(t.flightid) - count(r.flightid) > 0 as can_reserve,
                          purchase_available(f.flightid) and
-                         count(*) - count(t.flightid) - count(r.flightid) >
-                         0                                                                                          as can_buy
+                         count(*) - count(t.flightid) - count(r.flightid) > 0 as can_buy
                   from flights f
                            natural join seats s
                            left join tickets t on f.flightid = t.flightid and s.seatno = t.seatno
-                           left join reservations r on f.flightid = r.flightid and s.seatno = r.seatno
+                           left join (select r.flightid, r.seatno from reservations r where reserveduntil > now()) r
+                                     on f.flightid = r.flightid and s.seatno = r.seatno
                   group by f.flightid);
 end;
 $FlightsStatistics$
@@ -165,7 +167,8 @@ begin
                   from flights f
                            natural join seats s
                            left join tickets t on f.flightid = t.flightid and s.seatno = t.seatno
-                           left join reservations r on f.flightid = r.flightid and s.seatno = r.seatno
+                           left join (select r.flightid, r.seatno from reservations r where reserveduntil > now()) r
+                                     on f.flightid = r.flightid and s.seatno = r.seatno
                   where f.flightid = FlightStat.FlightId);
 end;
 $FlightsStatistics$
@@ -191,7 +194,7 @@ declare
                         from reservations r
                         where r.flightid = CompressSeats.FLightId for update;
 begin
-    set constraints tickets_pkey, reservations_pkey deferred;
+    set constraints tickets_pkey deferred;
     open seats;
     for _ in sold
         loop

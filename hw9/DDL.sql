@@ -41,8 +41,7 @@ create table Reservations
     FlightId      integer    not null references Flights (FlightId),
     SeatNo        varchar(4) not null,
     UserId        integer    not null references Users (UserId),
-    ReservedUntil timestamp  not null,
-    primary key (FlightId, SeatNo) deferrable
+    ReservedUntil timestamp  not null
 );
 
-create index reservations_flightid on Reservations using hash (flightid);
+create index reservations_flightid_seatno on Reservations using btree (flightid, seatno);

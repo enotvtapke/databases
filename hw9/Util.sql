@@ -56,6 +56,7 @@ except
  union
  select r.seatno
  from reservations r
- where r.flightid = free_seats.FlightId);
+ where r.flightid = free_seats.FlightId
+   and r.reserveduntil > now());
 $free_seats$
     language sql;
